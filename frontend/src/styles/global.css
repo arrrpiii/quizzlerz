@@ -569,12 +569,29 @@ input:focus, textarea:focus, select:focus {
   flex: 1;
   overflow: hidden;
   position: relative;
+  /* Fixed height so the page below doesn't reflow as cards cycle.
+     Sized to fit the longest sample's content comfortably. */
+  height: 260px;
 }
 .carousel-card {
   width: 100%;
   max-width: 480px;
   margin: 0 auto;
 }
+.carousel-card { height: 100%; }
+
+/* Cap description text inside the carousel so each card has roughly the
+   same content height — keeps the 3-line samples from looking stretched
+   inside the fixed-height card slot. */
+.carousel-card .sample-desc {
+  margin: 0.4rem 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-wrap;
+}
+
 .carousel-card .sample-card { margin: 0; height: 100%; }
 .carousel-arrow {
   width: 2.5rem;

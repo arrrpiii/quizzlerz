@@ -55,7 +55,7 @@ function SampleCard({ s }) {
         {" · "}<span className="muted">{s.meta}</span>
       </div>
       <div className="title">{s.title}</div>
-      <p style={{ margin: "0.4rem 0", whiteSpace: "pre-wrap" }}>{s.desc}</p>
+      <p className="sample-desc">{s.desc}</p>
       <div className="muted">♥ {s.likes} · 💬 {s.comments}</div>
     </div>
   );
