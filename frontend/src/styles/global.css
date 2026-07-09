@@ -558,23 +558,12 @@ input:focus, textarea:focus, select:focus {
 
 /* Landing carousel — see-through, no border */
 .carousel { position: relative; margin-bottom: 1rem; }
-.carousel-viewport { overflow: hidden; }
-.carousel-track { display: flex; width: 100%; }
-.carousel-slide {
-  flex: 0 0 calc(100% / 3);
-  min-width: calc(100% / 3);
-  padding: 0.75rem 0.6rem;
-  box-sizing: border-box;
+.carousel-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
 }
-.carousel-slide .sample-card {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  border: 1.5px solid var(--line-soft);
-  box-shadow: var(--shadow-1);
-  padding: 1.1rem 1.2rem;
-  background: var(--bg-card);
-}
+.carousel-row .sample-card { margin: 0; height: 100%; }
 .carousel-arrow {
   position: absolute;
   top: 50%;

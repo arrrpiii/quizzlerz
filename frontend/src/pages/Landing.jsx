@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { fadeUp, stagger } from "../motion";
@@ -54,94 +54,49 @@ function SampleCard({ s }) {
 
 function Carousel() {
   const VISIBLE = 3;
-  // Duplicate the first VISIBLE slides at the end so the wrap-around is seamless.
-  // When idx reaches the last (duplicate) position, the visible window looks identical
-  // to position 0, so we can snap translateX back without a visible jump.
-  const slides = [...SAMPLES, ...SAMPLES.slice(0, VISIBLE)];
-  const UNIQUE_POS = SAMPLES.length - VISIBLE; // 7 distinct starting positions
-  const stepPct = 100 / VISIBLE; // each step shifts by exactly one card width
+  const n = SAMPLES.length;
   const [idx, setIdx] = useState(0);
-  const [animMs, setAnimMs] = useState(450);
-
-  function wrap() {
-    // Instant snap back to start so the loop is invisible.
-    setAnimMs(0);
-    setTimeout(() => setAnimMs(450), 80);
-    return 0;
-  }
-
-  function advance() {
-    setIdx((i) => {
-      const next = i + 1;
-      if (next >= slides.length) return wrap();
-      return next;
-    });
-  }
-
-  function go(delta) {
-    setIdx((i) => {
-      let next = i + delta;
-      if (next < 0) {
-        // Stepping back past the start: snap to the last duplicate window.
-        setAnimMs(0);
-        setTimeout(() => setAnimMs(450), 80);
-        return slides.length - 1;
-      }
-      if (next >= slides.length) return wrap();
-      return next;
-    });
-  }
 
   useEffect(() => {
-    const t = setInterval(advance, 2000);
+    const t = setInterval(() => setIdx((i) => (i + 1) % n), 2000);
     return () => clearInterval(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [slides.length]);
+  }, [n]);
 
-  // For the dot row we expose only the 8 unique logical positions (0..UNIQUE_POS).
-  const dotIdx = idx % (UNIQUE_POS + 1);
+  const visible = Array.from({ length: VISIBLE }, (_, k) => SAMPLES[(idx + k) % n]);
 
   return (
     <div className="carousel">
       <button
         type="button"
         className="carousel-arrow carousel-arrow-left"
-        onClick={() => go(-1)}
+        onClick={() => setIdx((i) => (i - 1 + n) % n)}
         aria-label="Previous sample"
       >
         ←
       </button>
 
-      <div className="carousel-viewport">
-        <motion.div
-          className="carousel-track"
-          animate={{ x: `-${idx * stepPct}%` }}
-          transition={{ duration: animMs / 1000, ease: "easeInOut" }}
-        >
-          {slides.map((s, i) => (
-            <div className="carousel-slide" key={i}>
-              <SampleCard s={s} />
-            </div>
-          ))}
-        </motion.div>
+      <div className="carousel-row">
+        {visible.map((s, k) => (
+          <SampleCard key={(idx + k) % n} s={s} />
+        ))}
       </div>
 
       <button
         type="button"
         className="carousel-arrow carousel-arrow-right"
-        onClick={() => go(1)}
+        onClick={() => setIdx((i) => (i + 1) % n)}
         aria-label="Next sample"
       >
         →
       </button>
 
       <div className="carousel-dots">
-        {Array.from({ length: UNIQUE_POS + 1 }).map((_, i) => (
+        {Array.from({ length: n }).map((_, i) => (
           <button
             key={i}
             type="button"
-            className={"carousel-dot" + (i === dotIdx ? " active" : "")}
-            onClick={() => { setIdx(i); setAnimMs(450); }}
+            className={"carousel-dot" + (i === idx ? " active" : "")}
+            onClick={() => setIdx(i)}
             aria-label={`Go to sample ${i + 1}`}
           />
         ))}
