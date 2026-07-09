@@ -20,16 +20,17 @@ export default function Library() {
   const [users, setUsers] = useState([]);
 
   async function load() {
+    // Clear immediately so the previous tab's content doesn't linger while fetching.
+    setItems([]);
+    setUsers([]);
     try {
       const { data } = await api.get(`/me/library/${tab}`);
       if (tab === "following") {
         setUsers(data);
-        setItems([]);
       } else {
         setItems(data);
-        setUsers([]);
       }
-    } catch { setItems([]); setUsers([]); }
+    } catch { /* leave cleared */ }
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [tab]);
@@ -39,12 +40,11 @@ export default function Library() {
       <h1>My Library</h1>
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
 
-      <AnimatePresence mode="wait">
+      <AnimatePresence mode="wait" initial={false}>
         {tab === "following" ? (
           <motion.div key="following"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}>
             {users.length === 0
               ? <p className="muted">You aren't following anyone yet.</p>
@@ -66,7 +66,6 @@ export default function Library() {
           <motion.div key={tab}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
             transition={{ duration: 0.18 }}>
             {items.length === 0 && <p className="muted">Nothing here yet.</p>}
             {items.map((p, i) => <PostCard key={p.id} kind={tab} post={p} index={i} />)}
