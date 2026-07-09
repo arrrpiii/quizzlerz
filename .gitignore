@@ -1,0 +1,46 @@
+# Python — virtualenv + bytecode + caches
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node — installed deps + build outputs + caches
+node_modules/
+dist/
+build/
+.vite/
+.parcel-cache/
+.npm/
+.eslintcache
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Environment / secrets
+.env
+.env.local
+.env.*.local
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Local data dumps (e.g. dropped DB exports)
+*.dump
+*.bak
+
+# The original product prompt — keep local, not part of the repo
+prompt.txt
