@@ -175,23 +175,27 @@ export default function QuizDetail() {
 
       {(quiz.attempted_by_me || isOwner) && <QuestionsDropdown quiz={quiz} isOwner={isOwner} />}
 
-      <div className="actions-row">
-        <div className="actions-left">
-          <LikeBar kind="quizzes" id={quiz.id} initialLiked={quiz.liked_by_me} initialDisliked={quiz.disliked_by_me}
-                   likesCount={quiz.likes_count} dislikesCount={quiz.dislikes_count} />
-          {isOwner ? (
-            <button className="btn-ghost" disabled>Your quiz</button>
-          ) : quiz.attempted_by_me ? (
-            <button className="btn-ghost" disabled>Already attempted</button>
-          ) : (
-            <button onClick={() => nav(`/quiz/${quiz.id}/attempt`)}>Attempt quiz</button>
-          )}
-        </div>
+      {/* Primary action row: Attempt quiz / Your quiz / Already attempted.
+          Sits on its own line above the like/dislike row. */}
+      <div className="actions-row" style={{ marginTop: "1rem" }}>
+        {isOwner ? (
+          <button className="btn-ghost" disabled>Your quiz</button>
+        ) : quiz.attempted_by_me ? (
+          <button className="btn-ghost" disabled>Already attempted</button>
+        ) : (
+          <button onClick={() => nav(`/quiz/${quiz.id}/attempt`)}>Attempt quiz</button>
+        )}
         {isOwner && (
           <div className="actions-right">
             <button className="btn-ghost" onClick={deleteQuiz}>Delete</button>
           </div>
         )}
+      </div>
+
+      {/* Like / dislike on its own line below the primary action. */}
+      <div style={{ marginTop: "0.6rem" }}>
+        <LikeBar kind="quizzes" id={quiz.id} initialLiked={quiz.liked_by_me} initialDisliked={quiz.disliked_by_me}
+                 likesCount={quiz.likes_count} dislikesCount={quiz.dislikes_count} />
       </div>
 
       <h2 className="mt-1">Comments</h2>
