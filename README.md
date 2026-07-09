@@ -11,9 +11,9 @@ Three post kinds:
 - **Blogs** — long-form: a competition you gave, a strategy that worked, a question that broke you.
 - **Quizzes** — MCQ tests on any topic. One attempt per user; correct answers are revealed after submit. Average and high score tracked across all attempts.
 
-Around those, profiles are public with post counts and followers; the personal library tab aggregates saved repos, liked/disliked blogs, attempted quizzes, and followed users.
+Around those, profiles are public with post counts, followers, and a real `is_following` flag for the authed viewer; the personal library tab aggregates saved repos, liked/disliked blogs, attempted quizzes, and followed users. The home feed filters by tag (18 predefined tags spanning geography, science, sports, personal experience, etc.) and sorts by most recent or most liked, both via a shared dropdown control.
 
-The visual language is intentionally manuscript-styled — parchment, sepia ink, illuminated-red accents, gold rule dividers — to lean into the "scholarly quizzer" tone.
+The visual language is intentionally manuscript-styled — parchment, sepia ink, illuminated-red accents, gold rule dividers, engraved-feel buttons — to lean into the "scholarly quizzer" tone. The landing page shows a one-card-at-a-time slide carousel previewing what each post kind looks like.
 
 ## Tech stack
 
@@ -30,20 +30,23 @@ No CSS framework, no UI library, no auth-as-a-service — just the listed depend
 ```
 backend/
   main.py             FastAPI app + CORS + lifespan
-  db.py               Mongo connection + collection getters + index init
-  auth.py             JWT issue/verify, bcrypt, get_current_user dependency
+  db.py               Mongo connection + collection getters + index init +
+                      backfill_counts() for denormalized like/dislike counts
+  auth.py             JWT issue/verify, bcrypt, get_current_user +
+                      try_current_user (optional variant for public endpoints)
   models.py           Pydantic request schemas
   serialize.py        Shared post -> JSON serializer (hides quiz correct_index)
-  tags.py             Predefined tag list + tag normalization
+  tags.py             18-entry predefined tag list + tag normalization
   routers/
     auth_routes.py        /auth/register, /auth/login
-    user_routes.py        /users/:u, /users/:u/posts/:kind, follow, /me, /me, /me/library/:s, DELETE /me
+    user_routes.py        /users/:u (profile + posts + follow toggle),
+                          /me (GET/PATCH/DELETE), /me/library/:section
     repo_routes.py        /posts/repos* + file add/delete + save toggle + PATCH tags
     blog_routes.py        /posts/blogs* + PATCH for editing
     quiz_routes.py        /posts/quizzes* + attempt + PATCH tags
   requirements.txt
 frontend/
-  index.html, vite.config.js, package.json
+  index.html, vite.config.js, package.json, vercel.json (SPA rewrites)
   src/
     main.jsx
     App.jsx              Routes + auth gate
@@ -51,13 +54,14 @@ frontend/
     auth.jsx             AuthContext + login/register/logout
     motion.js            Shared framer-motion variants
     errors.js            axios error -> human-readable string(s)
-    tags.js              PREDEFINED_TAGS + tag helpers
-    components/          Header, PostCard, LikeBar, CommentList, FollowButton,
-                         TabBar, TagPicker, TagsDisplay, BackButton, MotionContainer
+    tags.js              PREDEFINED_TAGS (18 entries) + tag helpers
+    components/          Header, PostCard, LikeBar, Loading, CommentList,
+                         FollowButton, TabBar, TagPicker, TagsDisplay,
+                         BackButton, MotionContainer
     pages/               Landing, Home, Login, Register, Profile, Library,
                          RepoDetail, BlogDetail, QuizDetail, QuizAttempt,
                          NewRepo, NewBlog, NewQuiz
-    styles/global.css    Single CSS file, manuscript theme
+    styles/global.css    Single CSS file, manuscript theme + engraved buttons
 ```
 
 ## Run locally
