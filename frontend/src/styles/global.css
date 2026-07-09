@@ -556,34 +556,27 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 0.4rem;
 }
 
-/* Landing carousel — slides between windows.
-   .carousel-viewport is a one-cell grid so the two rows (entering + exiting)
-   that AnimatePresence holds during a transition stack in the same vertical
-   slot — without this, they fall into document flow and the new row appears
-   below the old row until the old row unmounts. */
+/* Landing carousel — one card at a time, slides on advance.
+   .carousel-stage is a flex row of arrow + viewport + arrow; the viewport
+   clips overflow and hosts the AnimatePresence'd motion.div. */
 .carousel { position: relative; margin-bottom: 1rem; }
-.carousel-viewport {
-  display: grid;
-  grid-template-areas: "stack";
-  overflow: hidden;
-}
-.carousel-row {
-  grid-area: stack;
+.carousel-stage {
   display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+.carousel-viewport {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.carousel-card {
   width: 100%;
+  max-width: 480px;
+  margin: 0 auto;
 }
-.carousel-slide {
-  flex: 0 0 calc(100% / 3);
-  min-width: calc(100% / 3);
-  padding: 0 0.5rem;
-  box-sizing: border-box;
-}
-.carousel-slide .sample-card { margin: 0; height: 100%; }
+.carousel-card .sample-card { margin: 0; height: 100%; }
 .carousel-arrow {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  z-index: 10;
   width: 2.5rem;
   height: 2.5rem;
   display: inline-flex;
@@ -600,11 +593,10 @@ input:focus, textarea:focus, select:focus {
   text-transform: none;
   letter-spacing: 0;
   box-shadow: 1px 1px 0 var(--ink-2);
+  flex-shrink: 0;
 }
 .carousel-arrow:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
-.carousel-arrow:active { transform: translateY(-50%) scale(0.95); }
-.carousel-arrow-left  { left: -1.25rem; }
-.carousel-arrow-right { right: -1.25rem; }
+.carousel-arrow:active { transform: scale(0.95); }
 .carousel-dots { display: flex; gap: 0.4rem; justify-content: center; margin-top: 0.9rem; }
 .carousel-dot {
   width: 0.55rem;
@@ -716,8 +708,6 @@ input:focus, textarea:focus, select:focus {
   .landing-feature { border-right: none; border-bottom: 1.5px solid var(--line-soft); }
   .landing-feature:last-child { border-bottom: none; }
   .landing-callout { flex-direction: column; text-align: center; align-items: stretch; }
-  .carousel-arrow-left  { left: 0.25rem; }
-  .carousel-arrow-right { right: 0.25rem; }
   h1 { font-size: 2rem; }
   .landing-hero h1 { font-size: 3rem; }
   .landing-cta h2 { font-size: 2rem; }

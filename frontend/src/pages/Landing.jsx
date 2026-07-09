@@ -62,7 +62,6 @@ function SampleCard({ s }) {
 }
 
 function Carousel() {
-  const VISIBLE = 3;
   const n = SAMPLES.length;
   const [idx, setIdx] = useState(0);
   // 1 = forward (next card enters from the right), -1 = backward.
@@ -81,54 +80,47 @@ function Carousel() {
     setIdx((i) => (i + delta + n) % n);
   }
   function goTo(target) {
-    // Pick the shortest direction around the cycle so the slide feels natural.
-    const fwd = ((target - idx + n) % n) <= n / 2;
-    setDir(fwd ? 1 : -1);
+    // Pick the shortest rotation around the cycle.
+    setDir(((target - idx + n) % n) <= n / 2 ? 1 : -1);
     setIdx(target);
   }
 
-  const visible = Array.from({ length: VISIBLE }, (_, k) => SAMPLES[(idx + k) % n]);
-
   return (
     <div className="carousel">
-      <button
-        type="button"
-        className="carousel-arrow carousel-arrow-left"
-        onClick={() => go(-1)}
-        aria-label="Previous sample"
-      >
-        ←
-      </button>
+      <div className="carousel-stage">
+        <button
+          type="button"
+          className="carousel-arrow carousel-arrow-left"
+          onClick={() => go(-1)}
+          aria-label="Previous sample"
+        >←</button>
 
-      <div className="carousel-viewport">
-        <AnimatePresence custom={dir} initial={false}>
-          <motion.div
-            key={idx}
-            className="carousel-row"
-            custom={dir}
-            variants={slideVariants}
-            initial="enter"
-            animate="center"
-            exit="exit"
-            transition={{ duration: 0.35, ease: "easeInOut" }}
-          >
-            {visible.map((s, k) => (
-              <div className="carousel-slide" key={(idx + k) % n}>
-                <SampleCard s={s} />
-              </div>
-            ))}
-          </motion.div>
-        </AnimatePresence>
+        <div className="carousel-viewport">
+          {/* mode="wait" — only one card is in the DOM at a time, so no
+              stacking concerns. Single-card slide is straightforward. */}
+          <AnimatePresence custom={dir} initial={false} mode="wait">
+            <motion.div
+              key={idx}
+              className="carousel-card"
+              custom={dir}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              <SampleCard s={SAMPLES[idx]} />
+            </motion.div>
+          </AnimatePresence>
+        </div>
+
+        <button
+          type="button"
+          className="carousel-arrow carousel-arrow-right"
+          onClick={() => go(1)}
+          aria-label="Next sample"
+        >→</button>
       </div>
-
-      <button
-        type="button"
-        className="carousel-arrow carousel-arrow-right"
-        onClick={() => go(1)}
-        aria-label="Next sample"
-      >
-        →
-      </button>
 
       <div className="carousel-dots">
         {Array.from({ length: n }).map((_, i) => (
