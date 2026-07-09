@@ -556,10 +556,22 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 0.4rem;
 }
 
-/* Landing carousel — slides between windows */
+/* Landing carousel — slides between windows.
+   .carousel-viewport is a one-cell grid so the two rows (entering + exiting)
+   that AnimatePresence holds during a transition stack in the same vertical
+   slot — without this, they fall into document flow and the new row appears
+   below the old row until the old row unmounts. */
 .carousel { position: relative; margin-bottom: 1rem; }
-.carousel-viewport { overflow: hidden; }
-.carousel-row { display: flex; width: 100%; }
+.carousel-viewport {
+  display: grid;
+  grid-template-areas: "stack";
+  overflow: hidden;
+}
+.carousel-row {
+  grid-area: stack;
+  display: flex;
+  width: 100%;
+}
 .carousel-slide {
   flex: 0 0 calc(100% / 3);
   min-width: calc(100% / 3);
