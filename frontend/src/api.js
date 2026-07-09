@@ -1,7 +1,11 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "/api" });
-// Backend is mounted at "/" — vite proxies /api/* → backend.
+// In dev, Vite proxies /api/* → backend. In prod, set VITE_API_URL to the
+// deployed backend origin (e.g. https://quizzlerz-api.onrender.com).
+const baseURL = import.meta.env.VITE_API_URL || "/api";
+
+const api = axios.create({ baseURL });
+// Backend is mounted at "/" — vite proxies /api/* → backend in dev.
 
 api.interceptors.request.use((cfg) => {
   const token = localStorage.getItem("token");

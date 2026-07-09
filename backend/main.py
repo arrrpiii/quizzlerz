@@ -1,4 +1,5 @@
 """FastAPI entrypoint."""
+import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -21,10 +22,18 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Quizzlerz", lifespan=lifespan)
 
-# CORS for the Vite dev server.
+# CORS: comma-separated origins in FRONTEND_ORIGINS, plus the Vite dev origins.
+# Examples:
+#   FRONTEND_ORIGINS="https://quizzlerz.vercel.app,https://quizzlerz-staging.vercel.app"
+_default_origins = "http://localhost:5173,http://127.0.0.1:5173"
+_allowed = [
+    o.strip()
+    for o in os.environ.get("FRONTEND_ORIGINS", _default_origins).split(",")
+    if o.strip()
+]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=_allowed,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
