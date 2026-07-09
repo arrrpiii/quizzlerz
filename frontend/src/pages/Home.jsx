@@ -15,6 +15,11 @@ const TABS = [
   { key: "quizzes", label: "Quizzes" },
 ];
 
+const SORT_OPTIONS = [
+  { value: "recent", label: "Most recent" },
+  { value: "likes",  label: "Most liked" },
+];
+
 export default function Home() {
   const { user } = useAuth();
   const [kind, setKind] = useState("repos");
@@ -24,7 +29,9 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
   const filterRef = useRef(null);
+  const sortRef = useRef(null);
   const abortRef = useRef(null); // cancels stale fetches when the tab/filter changes
 
   const supportsTags = kind !== "blogs";
@@ -56,13 +63,16 @@ export default function Home() {
     }
   }
 
-  // Close filter dropdown on outside click.
+  // Close filter + sort dropdowns on outside click.
   useEffect(() => {
-    if (!filterOpen) return;
-    function onDoc(e) { if (filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false); }
+    if (!filterOpen && !sortOpen) return;
+    function onDoc(e) {
+      if (filterOpen && filterRef.current && !filterRef.current.contains(e.target)) setFilterOpen(false);
+      if (sortOpen   && sortRef.current   && !sortRef.current.contains(e.target))   setSortOpen(false);
+    }
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
-  }, [filterOpen]);
+  }, [filterOpen, sortOpen]);
 
   // Cancel any in-flight fetch when leaving Home.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -127,10 +137,40 @@ export default function Home() {
             </AnimatePresence>
           </div>
         ) : <span />}
-        <select value={sort} onChange={(e) => { setSort(e.target.value); setPage(1); }}>
-          <option value="recent">Most recent</option>
-          <option value="likes">Most liked</option>
-        </select>
+        <div className="filter-dropdown" ref={sortRef}>
+          <button
+            type="button"
+            className="filter-trigger"
+            onClick={() => setSortOpen((o) => !o)}
+            aria-expanded={sortOpen}
+          >
+            Sort: {SORT_OPTIONS.find((o) => o.value === sort).label}
+            <span className="caret-sm" aria-hidden>{sortOpen ? "▴" : "▾"}</span>
+          </button>
+          <AnimatePresence>
+            {sortOpen && (
+              <motion.div
+                className="filter-panel"
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.15 }}
+              >
+                {SORT_OPTIONS.map((opt) => (
+                  <label key={opt.value} className={"filter-option" + (sort === opt.value ? " selected" : "")}>
+                    <input
+                      type="radio"
+                      name="sort"
+                      checked={sort === opt.value}
+                      onChange={() => { setSort(opt.value); setPage(1); setSortOpen(false); }}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       {selectedTags.length > 0 && (

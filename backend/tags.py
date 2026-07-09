@@ -3,6 +3,8 @@
 PREDEFINED_TAGS = [
     "geography", "education", "technology", "ai", "nature", "politics",
     "art", "music", "dance", "lifestyle", "television",
+    "history", "science", "current-affairs", "sports",
+    "personal-experience", "miscellaneous",
 ]
 
 
