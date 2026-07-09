@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 
-// Animated "Loading…" with a soft pulsing dots and a gentle fade-in.
+// Animated "Loading…" with a soft pulsing text and a gentle fade-in.
 export default function Loading({ text = "Loading…" }) {
   return (
     <motion.div
@@ -17,23 +17,6 @@ export default function Loading({ text = "Loading…" }) {
       >
         {text}
       </motion.span>
-      <span className="loading-dots" aria-hidden="true">
-        <motion.span
-          className="loading-dot"
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0 }}
-        />
-        <motion.span
-          className="loading-dot"
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0.15 }}
-        />
-        <motion.span
-          className="loading-dot"
-          animate={{ y: [0, -3, 0] }}
-          transition={{ duration: 0.9, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-        />
-      </span>
     </motion.div>
   );
 }
