@@ -24,11 +24,6 @@
   --ok:           #4a6b2a;
   --shadow-1: 0 1px 0 rgba(44,29,10,0.10), 0 2px 8px rgba(44,29,10,0.08);
   --shadow-2: 0 1px 0 rgba(44,29,10,0.12), 0 6px 16px rgba(44,29,10,0.18);
-  /* Subtle gold ambient glow used sparingly on hover / focus. */
-  --gold-glow:    0 0 18px rgba(168,130,28,0.22);
-  --accent-glow:  0 0 14px rgba(138,29,29,0.25);
-  /* Highlight rim — applied to card-like surfaces for the manuscript-page look. */
-  --rim: inset 0 0 0 1px rgba(255,248,220,0.55);
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
   --sans: var(--serif);
@@ -97,18 +92,6 @@ h2 {
   border-bottom: 1px solid var(--line-soft);
   padding-bottom: 0.35rem;
   margin-top: 1.6rem;
-  position: relative;
-  text-shadow: 0 1px 0 rgba(255,248,220,0.35);
-}
-h2::after {
-  /* short gold-leaved accent on the divider, like an illuminated initial cap */
-  content: "";
-  position: absolute;
-  left: 0;
-  bottom: -1px;
-  width: 56px;
-  height: 2px;
-  background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
 }
 h3 { font-size: 1.2rem; }
 
@@ -131,7 +114,7 @@ button, .btn {
   font: inherit;
   font-family: var(--serif);
   font-size: 0.95rem;
-  background: linear-gradient(180deg, var(--ink-2) 0%, var(--ink) 100%);
+  background: var(--ink);
   color: var(--bg-card);
   border: 1.5px solid var(--ink);
   padding: 0.5rem 1rem;
@@ -140,46 +123,25 @@ button, .btn {
   letter-spacing: 0.08em;
   font-weight: 600;
   border-radius: var(--radius-sm);
-  /* Engraved / letterpress feel: inner top highlight, inner bottom shadow, outer step. */
-  box-shadow:
-    inset 0 1px 0 rgba(255,248,220,0.18),
-    inset 0 -1px 0 rgba(0,0,0,0.30),
-    1px 1px 0 var(--ink-2);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.45);
-  transition: background 0.2s, color 0.2s, border-color 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.1s;
+  box-shadow: 1px 1px 0 var(--ink-2);
 }
-button:hover, .btn:hover {
-  background: linear-gradient(180deg, var(--accent) 0%, #6e1717 100%);
-  color: var(--accent-ink);
-  border-color: var(--accent);
-  box-shadow:
-    inset 0 1px 0 rgba(255,248,220,0.22),
-    inset 0 -1px 0 rgba(0,0,0,0.30),
-    var(--accent-glow);
-}
-button:active { transform: translate(1px, 1px); box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); }
-button:disabled { background: var(--muted); border-color: var(--muted); cursor: not-allowed; box-shadow: none; text-shadow: none; }
+button:hover, .btn:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+button:active { transform: translate(1px, 1px); box-shadow: none; }
+button:disabled { background: var(--muted); border-color: var(--muted); cursor: not-allowed; box-shadow: none; }
 
 .btn-secondary {
-  background: linear-gradient(180deg, var(--bg-card) 0%, var(--bg-soft) 100%);
+  background: var(--bg-card);
   color: var(--ink);
-  border-color: var(--line-soft);
-  text-shadow: none;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,0.6),
-    inset 0 -1px 0 rgba(44,29,10,0.10),
-    1px 1px 0 var(--ink-2);
 }
-.btn-secondary:hover { background: var(--ink); color: var(--bg-card); border-color: var(--ink); text-shadow: 0 1px 0 rgba(0,0,0,0.45); box-shadow: inset 0 1px 0 rgba(255,248,220,0.18), inset 0 -1px 0 rgba(0,0,0,0.30), var(--gold-glow); }
+.btn-secondary:hover { background: var(--ink); color: var(--bg-card); }
 
 .btn-ghost {
   background: transparent;
   color: var(--ink);
   border: 1.5px solid var(--ink);
-  text-shadow: none;
-  box-shadow: none;
 }
-.btn-ghost:hover { background: var(--ink); color: var(--bg-card); text-shadow: 0 1px 0 rgba(0,0,0,0.45); box-shadow: var(--gold-glow); }
+.btn-ghost:hover { background: var(--ink); color: var(--bg-card); }
 
 input, textarea, select {
   font: inherit;
@@ -194,10 +156,8 @@ input, textarea, select {
 }
 input:focus, textarea:focus, select:focus {
   outline: none;
-  border-color: var(--gold);
-  box-shadow:
-    0 0 0 3px rgba(168,130,28,0.18),
-    inset 0 0 0 1px rgba(168,130,28,0.18);
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 ::placeholder { color: var(--muted); font-style: italic; }
@@ -247,11 +207,7 @@ input:focus, textarea:focus, select:focus {
   font-variant: small-caps;
   letter-spacing: 0.12em;
   color: var(--gold);
-  /* Inscribed: deep shadow + warm gold bloom, like a gilded initial on dark vellum. */
-  text-shadow:
-    0 1px 0 rgba(0,0,0,0.55),
-    0 0 18px rgba(168,130,28,0.35),
-    0 0 48px rgba(168,130,28,0.18);
+  text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
 }
 .header .nav { display: flex; gap: 1.25rem; align-items: center; }
 .header .nav button {
@@ -319,12 +275,9 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 1rem;
   border-radius: var(--radius);
   border: 1.5px solid var(--line-soft);
-  /* manuscript-page rim: outer drop + soft cream inner highlight + faint gold halo */
-  box-shadow:
-    var(--rim),
-    var(--shadow-1);
+  box-shadow: var(--shadow-1);
   position: relative;
-  transition: box-shadow 0.25s, border-color 0.25s, transform 0.2s;
+  transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
 }
 .card::before, .card::after {
   /* tiny corner ornaments */
@@ -333,19 +286,14 @@ input:focus, textarea:focus, select:focus {
   width: 8px; height: 8px;
   border: 1.5px solid var(--gold);
   border-radius: 0;
-  transition: border-color 0.25s;
 }
 .card::before { top: -2px; left: -2px; border-right: none; border-bottom: none; }
 .card::after  { bottom: -2px; right: -2px; border-left: none; border-top: none; }
 .card.hoverable:hover {
-  box-shadow:
-    var(--rim),
-    var(--shadow-2),
-    var(--gold-glow);
+  box-shadow: var(--shadow-2);
   border-color: var(--ink);
   transform: translateY(-1px);
 }
-.card.hoverable:hover::before, .card.hoverable:hover::after { border-color: var(--ink); }
 
 .card .meta {
   font-family: var(--mono);
@@ -361,8 +309,6 @@ input:focus, textarea:focus, select:focus {
   letter-spacing: 0.02em;
   margin-bottom: 0.4rem;
   color: var(--ink);
-  /* faint cream highlight on dark ink — keeps title readable on parchment */
-  text-shadow: 0 1px 0 rgba(255,248,220,0.45);
 }
 .card .actions { display: flex; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
 
@@ -418,14 +364,10 @@ input:focus, textarea:focus, select:focus {
 .likebar button.active.like {
   background: var(--ok);
   color: var(--bg-card);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.25);
 }
 .likebar button.active.dislike {
   background: var(--accent);
   color: var(--accent-ink);
-  text-shadow: 0 1px 0 rgba(0,0,0,0.3);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.2), inset 0 -1px 0 rgba(0,0,0,0.25);
 }
 .likebar button:hover:not(.active) { background: var(--bg-soft); }
 .likebar .count {
@@ -453,23 +395,10 @@ input:focus, textarea:focus, select:focus {
   border: 1.5px solid var(--line-soft);
   border-radius: var(--radius);
   padding: 0.95rem 1.1rem;
-  box-shadow: var(--rim), var(--shadow-1);
-  position: relative;
-  overflow: hidden;
+  box-shadow: var(--shadow-1);
   transition: box-shadow 0.2s, transform 0.2s, border-color 0.2s;
 }
-.stat::before {
-  /* gold-leaved cap on top centre */
-  content: "";
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: 36%;
-  height: 2px;
-  background: linear-gradient(90deg, transparent 0%, var(--gold) 50%, transparent 100%);
-  opacity: 0.75;
-}
-.stat:hover { box-shadow: var(--rim), var(--shadow-2), var(--gold-glow); transform: translateY(-1px); border-color: var(--ink); }
+.stat:hover { box-shadow: var(--shadow-2); transform: translateY(-1px); border-color: var(--ink); }
 .stat .num {
   font-family: var(--serif);
   font-size: 1.8rem;
@@ -542,7 +471,6 @@ input:focus, textarea:focus, select:focus {
   letter-spacing: 0.04em;
   margin-bottom: 1rem;
   color: var(--ink);
-  text-shadow: 0 1px 0 rgba(255,248,220,0.5);
 }
 
 /* ─── Landing page ───────────────────────────────────────── */
@@ -566,9 +494,6 @@ input:focus, textarea:focus, select:focus {
   font-size: 5rem;
   letter-spacing: 0.08em;
   color: var(--ink);
-  text-shadow:
-    0 1px 0 rgba(255,248,220,0.55),
-    0 0 60px rgba(168,130,28,0.10);
 }
 .landing-hero p {
   font-size: 1.2rem;
@@ -589,7 +514,7 @@ input:focus, textarea:focus, select:focus {
   position: relative;
 }
 .section-title::after {
-  /* decorative diamond ornament — gold on shadow, sits on the rule */
+  /* decorative diamond ornament */
   content: "❖";
   position: absolute;
   left: 50%;
@@ -597,9 +522,8 @@ input:focus, textarea:focus, select:focus {
   transform: translateX(-50%);
   background: var(--bg);
   padding: 0 0.6em;
-  color: var(--gold);
+  color: var(--accent);
   font-size: 0.9rem;
-  text-shadow: 0 0 12px rgba(168,130,28,0.4);
 }
 .landing-features {
   display: grid;
@@ -671,10 +595,10 @@ input:focus, textarea:focus, select:focus {
   cursor: pointer;
   text-transform: none;
   letter-spacing: 0;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), inset 0 -1px 0 rgba(44,29,10,0.12), 1px 1px 0 var(--ink-2);
+  box-shadow: 1px 1px 0 var(--ink-2);
 }
-.carousel-arrow:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); box-shadow: var(--accent-glow); }
-.carousel-arrow:active { transform: translateY(-50%) scale(0.95); box-shadow: inset 0 1px 2px rgba(0,0,0,0.4); }
+.carousel-arrow:hover { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.carousel-arrow:active { transform: translateY(-50%) scale(0.95); }
 .carousel-arrow-left  { left: -1.25rem; }
 .carousel-arrow-right { right: -1.25rem; }
 .carousel-dots { display: flex; gap: 0.4rem; justify-content: center; margin-top: 0.9rem; }
@@ -720,9 +644,6 @@ input:focus, textarea:focus, select:focus {
   letter-spacing: 0.04em;
   line-height: 1;
   margin-bottom: 0.5rem;
-  text-shadow:
-    0 1px 0 rgba(255,248,220,0.45),
-    0 0 16px rgba(168,130,28,0.18);
 }
 .step-card h3 { font-size: 1.2rem; margin-bottom: 0.4rem; }
 .step-card p { color: var(--ink-2); margin: 0; font-size: 0.95rem; font-style: italic; }
@@ -826,10 +747,10 @@ input:focus, textarea:focus, select:focus {
   padding: 1.1rem 1.25rem;
   margin-bottom: 1rem;
   background: var(--bg-card);
-  box-shadow: var(--rim), var(--shadow-1);
+  box-shadow: var(--shadow-1);
   transition: box-shadow 0.2s, border-color 0.2s;
 }
-.mcq:hover { box-shadow: var(--rim), var(--shadow-2), var(--gold-glow); border-color: var(--ink); }
+.mcq:hover { box-shadow: var(--shadow-2); border-color: var(--ink); }
 .mcq .question {
   font-family: var(--serif);
   font-weight: 600;
@@ -891,7 +812,7 @@ input:focus, textarea:focus, select:focus {
   border-radius: var(--radius);
   overflow: hidden;
   background: var(--bg-card);
-  box-shadow: var(--rim), var(--shadow-1);
+  box-shadow: var(--shadow-1);
 }
 .doc-dropdown { border-top: 1.5px solid var(--line-soft); }
 .doc-dropdown:first-child { border-top: none; }
