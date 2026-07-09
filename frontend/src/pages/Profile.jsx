@@ -22,6 +22,7 @@ export default function Profile() {
   const [profile, setProfile] = useState(null);
   const [tab, setTab] = useState("repos");
   const [items, setItems] = useState([]);
+  const [postsLoaded, setPostsLoaded] = useState(false);
   const [err, setErr] = useState("");
   const [editingBio, setEditingBio] = useState(false);
   const [bioDraft, setBioDraft] = useState("");
@@ -49,6 +50,8 @@ export default function Profile() {
     } catch (e) {
       if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
       setItems([]);
+    } finally {
+      if (abortRef.current === ac) setPostsLoaded(true);
     }
   }
 
@@ -174,7 +177,8 @@ export default function Profile() {
       </div>
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
-      {items.length === 0 && <p className="muted">Nothing yet.</p>}
+      {!postsLoaded && <p className="muted">Loading…</p>}
+      {postsLoaded && items.length === 0 && <p className="muted">Nothing yet.</p>}
       <AnimatePresence>
         {items.map((p, i) => <PostCard key={`${tab}-${p.id}`} kind={tab} post={p} index={i} />)}
       </AnimatePresence>

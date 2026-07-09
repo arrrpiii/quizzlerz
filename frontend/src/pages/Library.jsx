@@ -18,6 +18,7 @@ export default function Library() {
   const [tab, setTab] = useState("repos");
   const [items, setItems] = useState([]);
   const [users, setUsers] = useState([]);
+  const [loaded, setLoaded] = useState(false);
   const abortRef = useRef(null); // cancels stale fetches when the tab changes
 
   async function load() {
@@ -39,6 +40,9 @@ export default function Library() {
     } catch (e) {
       if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
       /* leave cleared */
+    } finally {
+      // Only mark loaded when this fetch was the most recent one.
+      if (abortRef.current === ac) setLoaded(true);
     }
   }
 
@@ -58,28 +62,29 @@ export default function Library() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.18 }}>
-            {users.length === 0
-              ? <p className="muted">You aren't following anyone yet.</p>
-              : users.map((u, i) => (
-                  <motion.div className="card hoverable" key={u.id}
-                    initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
-                    transition={stagger(i)}
-                    whileHover={{ y: -2 }}>
-                    <div className="between">
-                      <Link to={`/u/${u.username}`} style={{ borderBottom: "none" }}>
-                        <strong>@{u.username}</strong>
-                      </Link>
-                      <span className="muted">{u.followers_count} followers · {u.following_count} following</span>
-                    </div>
-                  </motion.div>
-                ))}
+            {!loaded && <p className="muted">Loading…</p>}
+            {loaded && users.length === 0 && <p className="muted">You aren't following anyone yet.</p>}
+            {loaded && users.length > 0 && users.map((u, i) => (
+              <motion.div className="card hoverable" key={u.id}
+                initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}
+                transition={stagger(i)}
+                whileHover={{ y: -2 }}>
+                <div className="between">
+                  <Link to={`/u/${u.username}`} style={{ borderBottom: "none" }}>
+                    <strong>@{u.username}</strong>
+                  </Link>
+                  <span className="muted">{u.followers_count} followers · {u.following_count} following</span>
+                </div>
+              </motion.div>
+            ))}
           </motion.div>
         ) : (
           <motion.div key={tab}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.18 }}>
-            {items.length === 0 && <p className="muted">Nothing here yet.</p>}
+            {!loaded && <p className="muted">Loading…</p>}
+            {loaded && items.length === 0 && <p className="muted">Nothing here yet.</p>}
             {items.map((p, i) => <PostCard key={p.id} kind={tab} post={p} index={i} />)}
           </motion.div>
         )}
