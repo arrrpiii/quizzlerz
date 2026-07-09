@@ -6,7 +6,7 @@ from bson import ObjectId
 from ..db import repos, users
 from ..auth import get_current_user
 from ..serialize import serialize_repo
-from ..models import RepoIn, CommentIn, FileIn, TagsIn
+from ..models import RepoIn, CommentIn, FileIn, RepoUpdateIn
 from ..tags import clean_tags
 
 router = APIRouter(tags=["repos"])
@@ -65,14 +65,19 @@ def create(body: RepoIn, me: dict = Depends(get_current_user)):
     return _enrich(doc, me["_id"])
 
 @router.patch("/posts/repos/{rid}")
-def update(rid: str, body: TagsIn, me: dict = Depends(get_current_user)):
+def update(rid: str, body: RepoUpdateIn, me: dict = Depends(get_current_user)):
     try: oid = ObjectId(rid)
     except Exception: raise HTTPException(400, "bad id")
     d = repos().find_one({"_id": oid})
     if not d: raise HTTPException(404, "not found")
     if d["author_id"] != me["_id"]: raise HTTPException(403, "not owner")
-    repos().update_one({"_id": oid}, {"$set": {"tags": clean_tags(body.tags)}})
-    d["tags"] = clean_tags(body.tags)
+    # Only update fields that were actually sent (Pydantic leaves None for absent ones).
+    update_doc = {k: v for k, v in body.model_dump().items() if v is not None}
+    if "tags" in update_doc:
+        update_doc["tags"] = clean_tags(update_doc["tags"])
+    if update_doc:
+        repos().update_one({"_id": oid}, {"$set": update_doc})
+        d.update(update_doc)
     return _enrich(d, me["_id"])
 
 @router.get("/posts/repos/{rid}")

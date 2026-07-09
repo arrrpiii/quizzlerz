@@ -53,5 +53,12 @@ class QuizIn(BaseModel):
 class TagsIn(BaseModel):
     tags: list[str] = Field(min_length=1, max_length=20)
 
+class RepoUpdateIn(BaseModel):
+    # All fields optional — only fields present in the body are updated.
+    # Empty string is allowed for description (clears it).
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=2000)
+    tags: list[str] | None = Field(default=None, max_length=20)
+
 class AttemptIn(BaseModel):
     answers: list[int]  # selected option index per question

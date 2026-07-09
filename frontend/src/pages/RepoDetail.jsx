@@ -115,6 +115,10 @@ export default function RepoDetail() {
   const [editingTags, setEditingTags] = useState(false);
   const [savingTags, setSavingTags] = useState(false);
   const [tagsErr, setTagsErr] = useState("");
+  const [editingDetails, setEditingDetails] = useState(false);
+  const [detailsDraft, setDetailsDraft] = useState({ title: "", description: "" });
+  const [detailsErr, setDetailsErr] = useState("");
+  const [savingDetails, setSavingDetails] = useState(false);
 
   async function load() {
     try {
@@ -161,6 +165,33 @@ export default function RepoDetail() {
     }
   }
 
+  function startEditDetails() {
+    setDetailsDraft({ title: repo.title, description: repo.description || "" });
+    setDetailsErr("");
+    setEditingDetails(true);
+  }
+  function cancelEditDetails() {
+    setEditingDetails(false);
+    setDetailsErr("");
+  }
+  async function saveDetails(e) {
+    e.preventDefault();
+    setDetailsErr("");
+    setSavingDetails(true);
+    try {
+      const { data } = await api.patch(`/posts/repos/${id}`, {
+        title: detailsDraft.title.trim(),
+        description: detailsDraft.description,
+      });
+      setRepo(data);
+      setEditingDetails(false);
+    } catch (e) {
+      setDetailsErr(errorMessage(e, "failed"));
+    } finally {
+      setSavingDetails(false);
+    }
+  }
+
   if (err) return <MotionContainer><div className="form-error">{err}</div></MotionContainer>;
   if (!repo) return <MotionContainer><p className="muted">Loading…</p></MotionContainer>;
 
@@ -174,8 +205,46 @@ export default function RepoDetail() {
         {" · "}
         {new Date(repo.created_at).toLocaleString()}
       </div>
-      <h1 style={{ marginTop: "1.25rem" }}>{repo.title}</h1>
-      <p>{repo.description}</p>
+      {editingDetails ? (
+        <form onSubmit={saveDetails} className="repo-edit-details" style={{ marginTop: "1.25rem" }}>
+          <div className="form-row">
+            <label>Title</label>
+            <input
+              value={detailsDraft.title}
+              onChange={(e) => setDetailsDraft({ ...detailsDraft, title: e.target.value })}
+              autoFocus
+              maxLength={200}
+            />
+          </div>
+          <div className="form-row">
+            <label>Description</label>
+            <textarea
+              value={detailsDraft.description}
+              onChange={(e) => setDetailsDraft({ ...detailsDraft, description: e.target.value })}
+              rows={3}
+              maxLength={2000}
+            />
+          </div>
+          <div className="row">
+            <button type="submit" disabled={savingDetails}>{savingDetails ? "..." : "Save"}</button>
+            <button type="button" className="btn-ghost" onClick={cancelEditDetails}>Cancel</button>
+          </div>
+          {detailsErr && <div className="form-error">{detailsErr}</div>}
+        </form>
+      ) : (
+        <>
+          <div className="row" style={{ justifyContent: "space-between", alignItems: "flex-start", marginTop: "1.25rem" }}>
+            <h1 style={{ margin: 0 }}>{repo.title}</h1>
+            {isOwner && (
+              <button className="btn-ghost" style={{ padding: "0.3rem 0.7rem", fontSize: "0.8rem" }}
+                      onClick={startEditDetails}>
+                Edit details
+              </button>
+            )}
+          </div>
+          <p>{repo.description}</p>
+        </>
+      )}
 
       <div className="repo-tags-row">
         {editingTags ? (
