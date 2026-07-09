@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import api from "../api";
@@ -18,22 +18,34 @@ export default function Library() {
   const [tab, setTab] = useState("repos");
   const [items, setItems] = useState([]);
   const [users, setUsers] = useState([]);
+  const abortRef = useRef(null); // cancels stale fetches when the tab changes
 
   async function load() {
     // Clear immediately so the previous tab's content doesn't linger while fetching.
     setItems([]);
     setUsers([]);
+    // Abort any in-flight fetch from a previous tab so its response can't
+    // race past the new one and flash the wrong tab's cards.
+    if (abortRef.current) abortRef.current.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
     try {
-      const { data } = await api.get(`/me/library/${tab}`);
+      const { data } = await api.get(`/me/library/${tab}`, { signal: ac.signal });
       if (tab === "following") {
         setUsers(data);
       } else {
         setItems(data);
       }
-    } catch { /* leave cleared */ }
+    } catch (e) {
+      if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
+      /* leave cleared */
+    }
   }
 
   useEffect(() => { load(); /* eslint-disable-next-line */ }, [tab]);
+
+  // Cancel any in-flight fetch when leaving Library.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   return (
     <MotionContainer>

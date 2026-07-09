@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
 import api from "../api";
@@ -29,6 +29,7 @@ export default function Profile() {
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleteErr, setDeleteErr] = useState("");
   const [deleting, setDeleting] = useState(false);
+  const abortRef = useRef(null); // cancels stale fetches when the tab changes
 
   async function loadProfile() {
     try {
@@ -38,14 +39,23 @@ export default function Profile() {
   }
 
   async function loadPosts() {
+    setItems([]); // clear immediately so the previous tab's cards don't linger
+    if (abortRef.current) abortRef.current.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
     try {
-      const { data } = await api.get(`/users/${username}/posts/${tab}`);
+      const { data } = await api.get(`/users/${username}/posts/${tab}`, { signal: ac.signal });
       setItems(data);
-    } catch { setItems([]); }
+    } catch (e) {
+      if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
+      setItems([]);
+    }
   }
 
   useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [username]);
   useEffect(() => { if (profile) loadPosts(); /* eslint-disable-next-line */ }, [tab, profile]);
+  // Cancel any in-flight fetch when leaving the profile.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   function startEditBio() {
     setBioDraft(profile.bio || "");

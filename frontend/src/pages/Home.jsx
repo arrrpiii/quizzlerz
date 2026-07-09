@@ -24,23 +24,34 @@ export default function Home() {
   const [selectedTags, setSelectedTags] = useState([]);
   const [filterOpen, setFilterOpen] = useState(false);
   const filterRef = useRef(null);
+  const abortRef = useRef(null); // cancels stale fetches when the tab/filter changes
 
   const supportsTags = kind !== "blogs";
 
   async function load() {
     setLoading(true);
     setItems([]); // clear immediately so the previous tab's cards don't show while we fetch
+    // Cancel any in-flight fetch from a previous tab. Without this, a slow
+    // response from the old tab can land *after* the new tab started and
+    // briefly flash the wrong tab's cards in.
+    if (abortRef.current) abortRef.current.abort();
+    const ac = new AbortController();
+    abortRef.current = ac;
     try {
       const params = { sort, page, limit: 10 };
       if (supportsTags && selectedTags.length) {
         params.tags = selectedTags.join(",");
       }
-      const { data } = await api.get(`/posts/${kind}`, { params });
+      const { data } = await api.get(`/posts/${kind}`, { params, signal: ac.signal });
       setItems(data);
     } catch (e) {
-      // ignore — auth flow handles 401
+      if (e.name === "CanceledError" || e.code === "ERR_CANCELED") return;
+      // ignore other errors — auth flow handles 401
     } finally {
-      setLoading(false);
+      if (abortRef.current === ac) {
+        setLoading(false);
+        abortRef.current = null;
+      }
     }
   }
 
@@ -51,6 +62,9 @@ export default function Home() {
     document.addEventListener("mousedown", onDoc);
     return () => document.removeEventListener("mousedown", onDoc);
   }, [filterOpen]);
+
+  // Cancel any in-flight fetch when leaving Home.
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   useEffect(() => {
     if (kind === "blogs" && selectedTags.length) setSelectedTags([]);
