@@ -29,6 +29,7 @@ export default function Home() {
 
   async function load() {
     setLoading(true);
+    setItems([]); // clear immediately so the previous tab's cards don't show while we fetch
     try {
       const params = { sort, page, limit: 10 };
       if (supportsTags && selectedTags.length) {

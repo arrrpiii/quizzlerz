@@ -20,7 +20,6 @@ export default function PostCard({ kind, post, index = 0, onTagClick }) {
       className="card hoverable"
       initial={fadeUp.initial}
       animate={fadeUp.animate}
-      exit={fadeUp.exit}
       transition={stagger(index)}
       whileHover={cardHover.whileHover}
       whileTap={cardHover.whileTap}
