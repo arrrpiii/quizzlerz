@@ -35,13 +35,23 @@ export default function PostCard({ kind, post, index = 0, onTagClick }) {
         <div className="title">{post.title}</div>
       </Link>
       {kind === "blogs" && (
-        <p style={{ margin: "0.4rem 0", whiteSpace: "pre-wrap" }}>
+        <p className="card-excerpt" style={{ whiteSpace: "pre-wrap" }}>
           {(post.content || "").slice(0, 240)}
           {(post.content || "").length > 240 ? "…" : ""}
         </p>
       )}
-      {kind === "repos" && <p className="muted" style={{ margin: "0.3rem 0" }}>{post.description}</p>}
-      {kind === "quizzes" && <p className="muted" style={{ margin: "0.3rem 0" }}>{post.description}</p>}
+      {kind === "repos" && (
+        <p className="card-excerpt muted" style={{ margin: "0.3rem 0" }}>
+          {(post.description || "").slice(0, 240)}
+          {(post.description || "").length > 240 ? "…" : ""}
+        </p>
+      )}
+      {kind === "quizzes" && (
+        <p className="card-excerpt muted" style={{ margin: "0.3rem 0" }}>
+          {(post.description || "").slice(0, 240)}
+          {(post.description || "").length > 240 ? "…" : ""}
+        </p>
+      )}
       {post.tags && post.tags.length > 0 && (
         <TagsDisplay tags={post.tags} onTagClick={onTagClick} size="sm" />
       )}

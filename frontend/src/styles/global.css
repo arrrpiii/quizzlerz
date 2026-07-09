@@ -312,6 +312,15 @@ input:focus, textarea:focus, select:focus {
 }
 .card .actions { display: flex; gap: 0.5rem; margin-top: 0.85rem; flex-wrap: wrap; }
 
+/* Truncate post excerpts to ~3 lines on the feed, same look as blogs. */
+.card-excerpt {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0.4rem 0;
+}
+
 /* ─── Post kind badges ─────────────────────────────────────── */
 .badge {
   display: inline-block;
