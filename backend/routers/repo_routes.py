@@ -41,7 +41,8 @@ def feed(
         wanted = [t.strip().lower() for t in tags.split(",") if t.strip()]
         if wanted:
             q["tags"] = {"$in": wanted}
-    docs = list(repos().find(q).sort(sort, -1).skip((page - 1) * limit).limit(limit))
+    sort_field = "created_at" if sort == "recent" else "likes_count"
+    docs = list(repos().find(q).sort(sort_field, -1).skip((page - 1) * limit).limit(limit))
     out = []
     for d in docs:
         item = _enrich(d, me_id)
@@ -58,6 +59,7 @@ def create(body: RepoIn, me: dict = Depends(get_current_user)):
         "tags": clean_tags(body.tags),
         "files": [],
         "likes": [], "dislikes": [], "comments": [],
+        "likes_count": 0, "dislikes_count": 0,
         "created_at": datetime.now(timezone.utc),
     }
     res = repos().insert_one(doc)
@@ -111,9 +113,13 @@ def toggle_like(rid: str, me: dict = Depends(get_current_user)):
     d = repos().find_one({"_id": oid}, {"likes": 1, "dislikes": 1})
     if not d: raise HTTPException(404, "not found")
     if me_id in d.get("likes", []):
-        repos().update_one({"_id": oid}, {"$pull": {"likes": me_id}})
+        repos().update_one({"_id": oid}, {"$pull": {"likes": me_id}, "$inc": {"likes_count": -1}})
         return {"liked": False, "likes_count": len(d["likes"]) - 1}
-    repos().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}})
+    was_disliked = me_id in d.get("dislikes", [])
+    update = {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}, "$inc": {"likes_count": 1}}
+    if was_disliked:
+        update["$inc"]["dislikes_count"] = -1
+    repos().update_one({"_id": oid}, update)
     likes = repos().find_one({"_id": oid}, {"likes": 1})["likes"]
     return {"liked": True, "likes_count": len(likes)}
 

@@ -43,7 +43,8 @@ def feed(sort: str = Query("recent", pattern="^(recent|likes)$"),
         wanted = [t.strip().lower() for t in tags.split(",") if t.strip()]
         if wanted:
             q["tags"] = {"$in": wanted}
-    docs = list(quizzes().find(q).sort(sort, -1).skip((page - 1) * limit).limit(limit))
+    sort_field = "created_at" if sort == "recent" else "likes_count"
+    docs = list(quizzes().find(q).sort(sort_field, -1).skip((page - 1) * limit).limit(limit))
     return [_enrich(d, me_id) for d in docs]
 
 
@@ -56,6 +57,7 @@ def create(body: QuizIn, me: dict = Depends(get_current_user)):
         "questions": [q.model_dump() for q in body.questions],
         "tags": clean_tags(body.tags),
         "likes": [], "dislikes": [], "comments": [],
+        "likes_count": 0, "dislikes_count": 0,
         "attempts": [],
         "created_at": datetime.now(timezone.utc),
     }
@@ -114,9 +116,13 @@ def toggle_like(qid: str, me: dict = Depends(get_current_user)):
     if not d:
         raise HTTPException(404, "not found")
     if me_id in d.get("likes", []):
-        quizzes().update_one({"_id": oid}, {"$pull": {"likes": me_id}})
+        quizzes().update_one({"_id": oid}, {"$pull": {"likes": me_id}, "$inc": {"likes_count": -1}})
         return {"liked": False, "likes_count": len(d["likes"]) - 1}
-    quizzes().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}})
+    was_disliked = me_id in d.get("dislikes", [])
+    update = {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}, "$inc": {"likes_count": 1}}
+    if was_disliked:
+        update["$inc"]["dislikes_count"] = -1
+    quizzes().update_one({"_id": oid}, update)
     likes = quizzes().find_one({"_id": oid}, {"likes": 1})["likes"]
     return {"liked": True, "likes_count": len(likes)}
 
@@ -128,13 +134,17 @@ def toggle_dislike(qid: str, me: dict = Depends(get_current_user)):
     except Exception:
         raise HTTPException(400, "bad id")
     me_id = me["_id"]
-    d = quizzes().find_one({"_id": oid}, {"dislikes": 1})
+    d = quizzes().find_one({"_id": oid}, {"dislikes": 1, "likes": 1})
     if not d:
         raise HTTPException(404, "not found")
     if me_id in d.get("dislikes", []):
-        quizzes().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}})
+        quizzes().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}, "$inc": {"dislikes_count": -1}})
         return {"disliked": False, "dislikes_count": len(d["dislikes"]) - 1}
-    quizzes().update_one({"_id": oid}, {"$pull": {"likes": me_id}, "$addToSet": {"dislikes": me_id}})
+    was_liked = me_id in d.get("likes", [])
+    update = {"$pull": {"likes": me_id}, "$addToSet": {"dislikes": me_id}, "$inc": {"dislikes_count": 1}}
+    if was_liked:
+        update["$inc"]["likes_count"] = -1
+    quizzes().update_one({"_id": oid}, update)
     dislikes = quizzes().find_one({"_id": oid}, {"dislikes": 1})["dislikes"]
     return {"disliked": True, "dislikes_count": len(dislikes)}
 

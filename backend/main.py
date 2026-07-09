@@ -4,7 +4,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .db import init_indexes
+from .db import init_indexes, backfill_counts
 from .routers import (
     auth_router,
     user_router,
@@ -16,7 +16,9 @@ from .routers import (
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Startup: ensure indexes exist; backfill denormalized counts on older docs.
     init_indexes()
+    backfill_counts()
     yield
 
 

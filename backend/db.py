@@ -26,8 +26,28 @@ def init_indexes():
     users().create_index([("username", ASCENDING)], unique=True)
     users().create_index([("email", ASCENDING)], unique=True)
     repos().create_index([("created_at", DESCENDING)])
+    repos().create_index([("likes_count", DESCENDING), ("created_at", DESCENDING)])
     repos().create_index([("likes", DESCENDING)])
     blogs().create_index([("created_at", DESCENDING)])
+    blogs().create_index([("likes_count", DESCENDING), ("created_at", DESCENDING)])
     blogs().create_index([("likes", DESCENDING)])
     quizzes().create_index([("created_at", DESCENDING)])
+    quizzes().create_index([("likes_count", DESCENDING), ("created_at", DESCENDING)])
     quizzes().create_index([("likes", DESCENDING)])
+
+
+def backfill_counts():
+    """One-shot: derive likes_count / dislikes_count from the arrays
+    on any doc that doesn't have them yet. Safe to run repeatedly."""
+    for coll in (repos(), blogs(), quizzes()):
+        for d in coll.find(
+            {"$or": [{"likes_count": {"$exists": False}},
+                     {"dislikes_count": {"$exists": False}}]}
+        ):
+            update = {}
+            if "likes_count" not in d:
+                update["likes_count"] = len(d.get("likes", []))
+            if "dislikes_count" not in d:
+                update["dislikes_count"] = len(d.get("dislikes", []))
+            if update:
+                coll.update_one({"_id": d["_id"]}, {"$set": update})

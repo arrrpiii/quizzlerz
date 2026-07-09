@@ -26,7 +26,8 @@ def feed(sort: str = Query("recent", pattern="^(recent|likes)$"),
          limit: int = Query(10, ge=1, le=50),
          me=Depends(get_current_user)):
     me_id = me["_id"]
-    docs = list(blogs().find().sort(sort, -1).skip((page - 1) * limit).limit(limit))
+    sort_field = "created_at" if sort == "recent" else "likes_count"
+    docs = list(blogs().find().sort(sort_field, -1).skip((page - 1) * limit).limit(limit))
     return [_enrich(d, me_id) for d in docs]
 
 
@@ -37,6 +38,7 @@ def create(body: BlogIn, me: dict = Depends(get_current_user)):
         "title": body.title,
         "content": body.content,
         "likes": [], "dislikes": [], "comments": [],
+        "likes_count": 0, "dislikes_count": 0,
         "created_at": datetime.now(timezone.utc),
     }
     res = blogs().insert_one(doc)
@@ -99,9 +101,13 @@ def toggle_like(bid: str, me: dict = Depends(get_current_user)):
     if not d:
         raise HTTPException(404, "not found")
     if me_id in d.get("likes", []):
-        blogs().update_one({"_id": oid}, {"$pull": {"likes": me_id}})
+        blogs().update_one({"_id": oid}, {"$pull": {"likes": me_id}, "$inc": {"likes_count": -1}})
         return {"liked": False, "likes_count": len(d["likes"]) - 1}
-    blogs().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}})
+    was_disliked = me_id in d.get("dislikes", [])
+    update = {"$pull": {"dislikes": me_id}, "$addToSet": {"likes": me_id}, "$inc": {"likes_count": 1}}
+    if was_disliked:
+        update["$inc"]["dislikes_count"] = -1
+    blogs().update_one({"_id": oid}, update)
     likes = blogs().find_one({"_id": oid}, {"likes": 1})["likes"]
     return {"liked": True, "likes_count": len(likes)}
 
@@ -113,13 +119,17 @@ def toggle_dislike(bid: str, me: dict = Depends(get_current_user)):
     except Exception:
         raise HTTPException(400, "bad id")
     me_id = me["_id"]
-    d = blogs().find_one({"_id": oid}, {"dislikes": 1})
+    d = blogs().find_one({"_id": oid}, {"dislikes": 1, "likes": 1})
     if not d:
         raise HTTPException(404, "not found")
     if me_id in d.get("dislikes", []):
-        blogs().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}})
+        blogs().update_one({"_id": oid}, {"$pull": {"dislikes": me_id}, "$inc": {"dislikes_count": -1}})
         return {"disliked": False, "dislikes_count": len(d["dislikes"]) - 1}
-    blogs().update_one({"_id": oid}, {"$pull": {"likes": me_id}, "$addToSet": {"dislikes": me_id}})
+    was_liked = me_id in d.get("likes", [])
+    update = {"$pull": {"likes": me_id}, "$addToSet": {"dislikes": me_id}, "$inc": {"dislikes_count": 1}}
+    if was_liked:
+        update["$inc"]["likes_count"] = -1
+    blogs().update_one({"_id": oid}, update)
     dislikes = blogs().find_one({"_id": oid}, {"dislikes": 1})["dislikes"]
     return {"disliked": True, "dislikes_count": len(dislikes)}
 
