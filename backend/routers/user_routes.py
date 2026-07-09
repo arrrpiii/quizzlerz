@@ -3,7 +3,7 @@ from fastapi import APIRouter, HTTPException, Depends
 from bson import ObjectId
 
 from ..db import users, repos, blogs, quizzes
-from ..auth import get_current_user, public_user
+from ..auth import get_current_user, try_current_user, public_user
 from ..models import BioIn
 from ..serialize import serialize_many, serialize_quiz
 
@@ -16,7 +16,7 @@ def _user_by_username(username: str) -> dict:
     return u
 
 @router.get("/users/{username}")
-def get_profile(username: str):
+def get_profile(username: str, me: dict | None = Depends(try_current_user)):
     u = _user_by_username(username)
     uid = u["_id"]
     pub = public_user(u)
@@ -24,7 +24,7 @@ def get_profile(username: str):
         "repos_count":   repos().count_documents({"author_id": uid}),
         "blogs_count":   blogs().count_documents({"author_id": uid}),
         "quizzes_count": quizzes().count_documents({"author_id": uid}),
-        "is_following": False,
+        "is_following":  bool(me and uid in (me.get("following") or [])),
     })
     return pub
 

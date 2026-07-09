@@ -1,10 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../auth";
 import api from "../api";
 
 export default function FollowButton({ username, initiallyFollowing, onChange }) {
   const { user } = useAuth();
   const [following, setFollowing] = useState(initiallyFollowing);
+
+  // Keep the button label in sync if the parent refetches and brings a new
+  // is_following value (e.g. profile refetch from elsewhere).
+  useEffect(() => { setFollowing(initiallyFollowing); }, [initiallyFollowing, username]);
 
   if (!user || user.username === username) return null;
 

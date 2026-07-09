@@ -44,6 +44,17 @@ def get_current_user(authorization: str | None = Header(default=None)) -> dict:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "user not found")
     return user
 
+def try_current_user(authorization: str | None = Header(default=None)) -> dict | None:
+    """Optional variant — returns the user dict or None for unauthenticated/invalid tokens.
+    Use on endpoints that should behave differently when logged in but stay public otherwise."""
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    try:
+        uid = decode_token(authorization[7:])
+    except HTTPException:
+        return None
+    return users().find_one({"_id": ObjectId(uid)})
+
 def public_user(user: dict) -> dict:
     """Strip sensitive fields before sending to client."""
     return {
