@@ -556,14 +556,17 @@ input:focus, textarea:focus, select:focus {
   margin-bottom: 0.4rem;
 }
 
-/* Landing carousel — see-through, no border */
+/* Landing carousel — slides between windows */
 .carousel { position: relative; margin-bottom: 1rem; }
-.carousel-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1rem;
+.carousel-viewport { overflow: hidden; }
+.carousel-row { display: flex; width: 100%; }
+.carousel-slide {
+  flex: 0 0 calc(100% / 3);
+  min-width: calc(100% / 3);
+  padding: 0 0.5rem;
+  box-sizing: border-box;
 }
-.carousel-row .sample-card { margin: 0; height: 100%; }
+.carousel-slide .sample-card { margin: 0; height: 100%; }
 .carousel-arrow {
   position: absolute;
   top: 50%;

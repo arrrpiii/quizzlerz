@@ -1,7 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 import { fadeUp, stagger } from "../motion";
+
+// Slide variants for the carousel. `dir` (1 forward, -1 backward) is forwarded via
+// `custom` so the row enters from the right and exits to the left when going
+// forward, and vice versa when going back.
+const slideVariants = {
+  enter: (dir) => ({ x: dir > 0 ? "100%" : "-100%", opacity: 0.45 }),
+  center: { x: 0, opacity: 1 },
+  exit:  (dir) => ({ x: dir > 0 ? "-100%" : "100%", opacity: 0.45 }),
+};
 
 // Ten realistic-looking sample cards across the three post kinds.
 const SAMPLES = [
@@ -56,11 +65,27 @@ function Carousel() {
   const VISIBLE = 3;
   const n = SAMPLES.length;
   const [idx, setIdx] = useState(0);
+  // 1 = forward (next card enters from the right), -1 = backward.
+  const [dir, setDir] = useState(1);
 
   useEffect(() => {
-    const t = setInterval(() => setIdx((i) => (i + 1) % n), 2000);
+    const t = setInterval(() => {
+      setDir(1);
+      setIdx((i) => (i + 1) % n);
+    }, 2000);
     return () => clearInterval(t);
   }, [n]);
+
+  function go(delta) {
+    setDir(delta > 0 ? 1 : -1);
+    setIdx((i) => (i + delta + n) % n);
+  }
+  function goTo(target) {
+    // Pick the shortest direction around the cycle so the slide feels natural.
+    const fwd = ((target - idx + n) % n) <= n / 2;
+    setDir(fwd ? 1 : -1);
+    setIdx(target);
+  }
 
   const visible = Array.from({ length: VISIBLE }, (_, k) => SAMPLES[(idx + k) % n]);
 
@@ -69,22 +94,37 @@ function Carousel() {
       <button
         type="button"
         className="carousel-arrow carousel-arrow-left"
-        onClick={() => setIdx((i) => (i - 1 + n) % n)}
+        onClick={() => go(-1)}
         aria-label="Previous sample"
       >
         ←
       </button>
 
-      <div className="carousel-row">
-        {visible.map((s, k) => (
-          <SampleCard key={(idx + k) % n} s={s} />
-        ))}
+      <div className="carousel-viewport">
+        <AnimatePresence custom={dir} initial={false}>
+          <motion.div
+            key={idx}
+            className="carousel-row"
+            custom={dir}
+            variants={slideVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={{ duration: 0.35, ease: "easeInOut" }}
+          >
+            {visible.map((s, k) => (
+              <div className="carousel-slide" key={(idx + k) % n}>
+                <SampleCard s={s} />
+              </div>
+            ))}
+          </motion.div>
+        </AnimatePresence>
       </div>
 
       <button
         type="button"
         className="carousel-arrow carousel-arrow-right"
-        onClick={() => setIdx((i) => (i + 1) % n)}
+        onClick={() => go(1)}
         aria-label="Next sample"
       >
         →
@@ -96,7 +136,7 @@ function Carousel() {
             key={i}
             type="button"
             className={"carousel-dot" + (i === idx ? " active" : "")}
-            onClick={() => setIdx(i)}
+            onClick={() => goTo(i)}
             aria-label={`Go to sample ${i + 1}`}
           />
         ))}
