@@ -7,6 +7,7 @@ import TabBar from "../components/TabBar";
 import PostCard from "../components/PostCard";
 import FollowButton from "../components/FollowButton";
 import MotionContainer from "../components/MotionContainer";
+import Loading from "../components/Loading";
 import { errorMessage } from "../errors";
 
 const TABS = [
@@ -41,6 +42,7 @@ export default function Profile() {
 
   async function loadPosts() {
     setItems([]); // clear immediately so the previous tab's cards don't linger
+    setPostsLoaded(false); // reset on every fetch so Loading shows
     if (abortRef.current) abortRef.current.abort();
     const ac = new AbortController();
     abortRef.current = ac;
@@ -55,7 +57,13 @@ export default function Profile() {
     }
   }
 
-  useEffect(() => { loadProfile(); /* eslint-disable-next-line */ }, [username]);
+  useEffect(() => {
+    // Switching to a different user -> reset postsLoaded so the new
+    // user's posts show Loading, not the previous user's "Nothing yet".
+    setPostsLoaded(false);
+    loadProfile();
+    /* eslint-disable-next-line */
+  }, [username]);
   useEffect(() => { if (profile) loadPosts(); /* eslint-disable-next-line */ }, [tab, profile]);
   // Cancel any in-flight fetch when leaving the profile.
   useEffect(() => () => abortRef.current?.abort(), []);
@@ -177,7 +185,7 @@ export default function Profile() {
       </div>
 
       <TabBar tabs={TABS} active={tab} onChange={setTab} />
-      {!postsLoaded && <p className="muted">Loading…</p>}
+      {!postsLoaded && <Loading />}
       {postsLoaded && items.length === 0 && <p className="muted">Nothing yet.</p>}
       <AnimatePresence>
         {items.map((p, i) => <PostCard key={`${tab}-${p.id}`} kind={tab} post={p} index={i} />)}

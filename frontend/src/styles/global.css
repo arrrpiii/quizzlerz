@@ -1133,3 +1133,29 @@ input:focus, textarea:focus, select:focus {
   border: 1.5px solid var(--accent);
 }
 .danger-ghost:hover { background: var(--accent); color: var(--accent-ink); }
+
+/* Animated loading state */
+.loading-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  font-family: var(--serif);
+  color: var(--muted);
+  font-style: italic;
+}
+.loading-text { font-size: 0.95rem; }
+.loading-dots {
+  display: inline-flex;
+  gap: 0.2rem;
+  align-items: baseline;
+  margin-left: 0.15rem;
+}
+.loading-dot {
+  display: inline-block;
+  width: 0.32rem;
+  height: 0.32rem;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.55;
+}

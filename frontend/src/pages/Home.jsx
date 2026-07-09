@@ -5,6 +5,7 @@ import api from "../api";
 import TabBar from "../components/TabBar";
 import PostCard from "../components/PostCard";
 import MotionContainer from "../components/MotionContainer";
+import Loading from "../components/Loading";
 import { fadeUp } from "../motion";
 import { PREDEFINED_TAGS } from "../tags";
 
@@ -146,7 +147,7 @@ export default function Home() {
         </div>
       )}
 
-      {loading && <p className="muted">Loading…</p>}
+      {loading && <Loading />}
       {!loading && items.length === 0 && (
         <p className="muted">
           {selectedTags.length
